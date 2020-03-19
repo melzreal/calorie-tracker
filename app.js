@@ -19,7 +19,7 @@ const ItemCtrl = (function () {
             },
             {
                 id: 1,
-                name: 'Beef Burguer',
+                name: 'Beefy Burguer',
                 calories: 800
             },
             {
@@ -32,6 +32,9 @@ const ItemCtrl = (function () {
     }
 
     return {
+        getItems: function () {
+            return state.items;
+        },
         logState: function () {
             return state;
         }
@@ -41,6 +44,24 @@ const ItemCtrl = (function () {
 
 //our ui controller will populate our list 
 const UICtrl = (function () {
+    return {
+        populateItems: function (goodies) {
+
+            let html = '';
+
+            goodies.map(item => {
+                html += `<li id="item-${item.id}" class="collection-item">
+                <strong> ${item.name} </strong> <em> ${item.calories}</em>
+                <a href="#" class="secondary-content">
+                    <i class="edit-item fa fa-pencil"></i>
+                </a>
+                </li>`;
+            });
+
+            //put items into the DOM
+            document.getElementById('item-list').innerHTML = html;
+        }
+    }
 
 })();
 
@@ -49,7 +70,9 @@ const App = (function (ItemCtrl, UICtrl) {
     //anything we need to run when the app loads, we place here.
     return {
         init: function () {
-            console.log('HOI')
+            const items = ItemCtrl.getItems();
+
+            UICtrl.populateItems(items);
         }
     }
 
