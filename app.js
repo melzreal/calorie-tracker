@@ -80,6 +80,18 @@ const ItemCtrl = (function () {
         },
         getCurrentItem: function () {
             return state.currentItem;
+        },
+        updateItem: function (name, calories) {
+            calories = parseInt(calories);
+            let found = null;
+            state.items.forEach(item => {
+                if (item.id === state.currentItem.id) {
+                    item.name = name;
+                    item.calories = calories;
+                    found = item;
+                }
+            });
+            return found;
         }
     }
 
@@ -91,12 +103,13 @@ const UICtrl = (function () {
     const UISelectors = {
         itemList: '#item-list',
         addBtn: '.add-btn',
-        itemName: 'item-name',
-        itemCalories: 'item-calories',
+        itemName: '#item-name',
+        itemCalories: '#item-calories',
         totalCalories: '.total-calories',
         updateBtn: '.update-btn',
         deleteBtn: '.delete-btn',
-        backBtn: '.back-btn'
+        backBtn: '.back-btn',
+        updateItemSubmit: '.update-btn'
     }
     return {
         populateItems: function (goodies) {
@@ -122,8 +135,8 @@ const UICtrl = (function () {
 
         getItemInput: function () {
             return {
-                name: document.getElementById(UISelectors.itemName).value,
-                calories: document.getElementById(UISelectors.itemCalories).value
+                name: document.querySelector(UISelectors.itemName).value,
+                calories: document.querySelector(UISelectors.itemCalories).value
             }
         },
         addListItem: function (item) {
@@ -152,8 +165,8 @@ const UICtrl = (function () {
 
         },
         clearInput: function () {
-            document.getElementById(UISelectors.itemName).value = '';
-            document.getElementById(UISelectors.itemCalories).value = ''
+            document.querySelector(UISelectors.itemName).value = '';
+            document.querySelector(UISelectors.itemCalories).value = ''
         },
         clearEditState: function () {
             UICtrl.clearInput();
@@ -163,9 +176,18 @@ const UICtrl = (function () {
 
         },
         addItemToForm: function () {
-            document.getElementById(UISelectors.itemName).value = ItemCtrl.getCurrentItem().name;
-            document.getElementById(UISelectors.itemCalories).value = ItemCtrl.getCurrentItem().calories;
-        }
+            document.querySelector(UISelectors.itemName).value = ItemCtrl.getCurrentItem().name;
+            document.querySelector(UISelectors.itemCalories).value = ItemCtrl.getCurrentItem().calories;
+            UICtrl.showEditState();
+        },
+        showEditState: function () {
+
+            document.querySelector(UISelectors.deleteBtn).style.display = 'inline';
+            document.querySelector(UISelectors.backBtn).style.display = 'inline';
+            document.querySelector(UISelectors.updateBtn).style.display = 'inline';
+            document.querySelector(UISelectors.addBtn).style.display = 'none';
+        },
+
     }
 
 })();
@@ -175,7 +197,18 @@ const App = (function (ItemCtrl, UICtrl) {
     const loadEventListener = function () {
         const UISelectors = UICtrl.getSelectors();
         document.querySelector(UISelectors.addBtn).addEventListener('click', itemAddSubmit);
+
+        //disable enter to make sure right button is clicked when multiple are available
+        //key code for enter is 13
+        document.addEventListener('keypress', function (e) {
+            if (e.keyCode === 13 || e.which === 13) {
+                e.preventDefault();
+                return false;
+            }
+        })
+
         document.querySelector(UISelectors.itemList).addEventListener('click', itemUpdate);
+        document.querySelector(UISelectors.updateItemSubmit).addEventListener('click', updateItemSubmit);
 
 
     }
@@ -216,6 +249,14 @@ const App = (function (ItemCtrl, UICtrl) {
 
 
         }
+    }
+
+    const updateItemSubmit = function (e) {
+        e.preventDefault();
+        const itemInput = UICtrl.getItemInput();
+
+        const updatedItem = ItemCtrl.updateItem(itemInput.name, itemInput.calories);
+
     }
     //anything we need to run when the app loads, we place here.
     return {
