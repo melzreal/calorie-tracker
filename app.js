@@ -63,6 +63,23 @@ const ItemCtrl = (function () {
             state.totalCalories = total;
             return state.totalCalories;
 
+        },
+        getItemById: function (id) {
+            let found = null;
+
+            state.items.forEach(item => {
+                if (item.id === id) {
+                    found = item;
+                }
+            });
+            return found;
+
+        },
+        setCurrentItem: function (item) {
+            state.currentItem = item;
+        },
+        getCurrentItem: function () {
+            return state.currentItem;
         }
     }
 
@@ -78,7 +95,8 @@ const UICtrl = (function () {
         itemCalories: 'item-calories',
         totalCalories: '.total-calories',
         updateBtn: '.update-btn',
-        deleteBtn: '.delete-btn'
+        deleteBtn: '.delete-btn',
+        backBtn: '.back-btn'
     }
     return {
         populateItems: function (goodies) {
@@ -139,6 +157,14 @@ const UICtrl = (function () {
         },
         clearEditState: function () {
             UICtrl.clearInput();
+            document.querySelector(UISelectors.deleteBtn).style.display = 'none';
+            document.querySelector(UISelectors.backBtn).style.display = 'none';
+            document.querySelector(UISelectors.updateBtn).style.display = 'none';
+
+        },
+        addItemToForm: function () {
+            document.getElementById(UISelectors.itemName).value = ItemCtrl.getCurrentItem().name;
+            document.getElementById(UISelectors.itemCalories).value = ItemCtrl.getCurrentItem().calories;
         }
     }
 
@@ -149,6 +175,9 @@ const App = (function (ItemCtrl, UICtrl) {
     const loadEventListener = function () {
         const UISelectors = UICtrl.getSelectors();
         document.querySelector(UISelectors.addBtn).addEventListener('click', itemAddSubmit);
+        document.querySelector(UISelectors.itemList).addEventListener('click', itemUpdate);
+
+
     }
     //we need to call this on our init function
     const itemAddSubmit = function (e) {
@@ -171,9 +200,29 @@ const App = (function (ItemCtrl, UICtrl) {
         UICtrl.clearInput();
 
     }
+
+    const itemUpdate = function (e) {
+        //we use event delegation to make sure we can target the edit which was added after page load
+        //get the item id first
+        //make an array of items and ids then grab the id which is on the first index
+        e.preventDefault();
+        if (e.target.classList.contains('edit-item')) {
+            const listId = e.target.parentNode.parentNode.id;
+            const listIdArr = listId.split('-')
+            const itemId = parseInt(listIdArr[1]);
+            const itemToEdit = ItemCtrl.getItemById(itemId);
+            ItemCtrl.setCurrentItem(itemToEdit);
+            UICtrl.addItemToForm();
+
+
+        }
+    }
     //anything we need to run when the app loads, we place here.
     return {
         init: function () {
+            //set initial state
+            UICtrl.clearEditState();
+
             const items = ItemCtrl.getItems();
             if (items.length === 0) {
                 UICtrl.hideList();
@@ -184,6 +233,7 @@ const App = (function (ItemCtrl, UICtrl) {
             UICtrl.populateItems(items);
             const getCalories = ItemCtrl.getTotalCalories();
             UICtrl.showTotalCalories(getCalories);
+
             loadEventListener();
         }
     }
